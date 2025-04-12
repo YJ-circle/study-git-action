@@ -1,4 +1,4 @@
-name: Deploy to Synology NAS
+name: Deploy
 
 on:
   push:
@@ -13,27 +13,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -p ${{ secrets.SERVER_PORT }} -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-
     - name: Make gradlew executable
       run: chmod +x ./gradlew
 
     - name: Build Spring Boot (JAR)
       run: ./gradlew bootJar
 
-    - name: Upload JAR via SSH (cat 방식)
-      run: |
-        cat build/libs/*.jar | ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cat > '${{ secrets.SERVER_PATH }}/app.jar'"
+    - name: Copy JAR to shared volume
+      run: cp build/libs/*.jar /deploy/app.jar
 
-    - name: Restart Docker on NAS
+    - name: Restart Docker with New JAR
       run: |
-        ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
-          cd ${{ secrets.SERVER_PATH }}
-          docker-compose down
-          docker-compose up -d --build
-        EOF
+        cd /deploy
+        docker-compose down
+        docker-compose up -d --build
