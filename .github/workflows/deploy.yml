@@ -20,12 +20,15 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -p ${{ secrets.SERVER_PORT }} -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
     - name: Build Spring Boot (JAR)
       run: ./gradlew bootJar
 
     - name: Deploy to NAS
       run: |
-        scp -p ${{ secrets.SERVER_PORT }} build/libs/*.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.SERVER_PATH }}/app.jar
+        scp -P ${{ secrets.SERVER_PORT }} build/libs/*.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.SERVER_PATH }}/app.jar
         ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
           cd ${{ secrets.SERVER_PATH }}
           docker-compose down
