@@ -26,9 +26,12 @@ jobs:
     - name: Build Spring Boot (JAR)
       run: ./gradlew bootJar
 
-    - name: Deploy to NAS
+    - name: Upload JAR via SSH (cat 방식)
       run: |
-        scp -P ${{ secrets.SERVER_PORT }} build/libs/*.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.SERVER_PATH }}/app.jar
+        cat build/libs/*.jar | ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cat > '${{ secrets.SERVER_PATH }}/app.jar'"
+
+    - name: Restart Docker on NAS
+      run: |
         ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
           cd ${{ secrets.SERVER_PATH }}
           docker-compose down
