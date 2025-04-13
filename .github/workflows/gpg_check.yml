@@ -23,17 +23,17 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Fetch PR branch
-        run: git fetch origin ${{ github.head_ref }} --depth=1
+      - name: Fetch all branches
+        run: git fetch --all
 
       - name: Check for unsigned commits
         id: check
         run: |
-          COMMITS=$(git log origin/${{ github.head_ref }} --pretty=format:"%H %G?" || echo "")
+          COMMITS=$(git log origin/${{ github.base_ref }}..origin/${{ github.head_ref }} --pretty=format:"%H %G?" || echo "")
           UNSIGNED=0
 
           if [ -z "$COMMITS" ]; then
-            echo "No commits found in the PR branch. Exiting."
+            echo "No commits found for comparison. Exiting."
             echo "unsigned=0" >> "$GITHUB_OUTPUT"
             exit 0
           fi
