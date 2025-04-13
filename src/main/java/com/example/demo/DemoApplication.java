@@ -26,7 +26,7 @@ class TestController {
         return "Hello World";
     }
 	
-	@PostMappi
+	@PostMappin
     @ResponseBody
     public String testPage2(){
         return "오타 테스트";
