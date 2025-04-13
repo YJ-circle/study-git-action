@@ -25,5 +25,12 @@ class TestController {
     public String testPage(){
         return "Hello World";
     }
+	
+	@PostMappin
+    @ResponseBody
+    public String testPage(){
+        return "오타 테스트";
+    }
+
 
 }
