@@ -13,18 +13,20 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
+
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.base_ref }} --depth=1
+
       - name: Check for unsigned commits
         run: |
-          COMMITS=$(git log origin/${{ github.base_ref }}..HEAD --pretty=format:"%H")
+          COMMITS=$(git log origin/${{ github.base_ref }}..HEAD --pretty=format:"%H %G?")
           UNSIGNED=0
-          for COMMIT in $COMMITS; do
-            SIG=$(git verify-commit $COMMIT 2>&1 || true)
-            if echo "$SIG" | grep -q "gpg: Can't check signature"; then
-              echo "Unsigned commit: $COMMIT"
+          while read -r COMMIT STATUS; do
+            if [ "$STATUS" != "G" ]; then
+              echo "Unsigned or unverified commit: $COMMIT (status: $STATUS)"
               UNSIGNED=1
             fi
-          done
-
+          done <<< "$COMMITS"
           echo "UNSIGNED=$UNSIGNED" >> $GITHUB_ENV
 
       - name: Comment if unsigned commits
@@ -38,7 +40,7 @@ jobs:
               repo: context.repo.repo,
               body: "🚫 이 PR에는 **GPG 서명되지 않은 커밋**이 포함되어 있어요.\n\n모든 커밋을 서명(`git commit -S`)하고 다시 push해주세요 🙏"
             })
-            
+
       - name: Close PR if unsigned commits
         if: env.UNSIGNED == '1'
         uses: peter-evans/close-pull@v3
