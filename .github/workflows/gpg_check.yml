@@ -1,0 +1,44 @@
+name: Check GPG Signatures
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-signatures:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+
+      - name: Check for unsigned commits
+        run: |
+          COMMITS=$(git log origin/${{ github.base_ref }}..HEAD --pretty=format:"%H")
+          UNSIGNED=0
+          for COMMIT in $COMMITS; do
+            SIG=$(git verify-commit $COMMIT 2>&1 || true)
+            if echo "$SIG" | grep -q "gpg: Can't check signature"; then
+              echo "Unsigned commit: $COMMIT"
+              UNSIGNED=1
+            fi
+          done
+
+          echo "UNSIGNED=$UNSIGNED" >> $GITHUB_ENV
+
+      - name: Comment if unsigned commits
+        if: env.UNSIGNED == '1'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "🚫 이 PR에는 **GPG 서명되지 않은 커밋**이 포함되어 있어요.\n\n모든 커밋을 서명(`git commit -S`)하고 다시 push해주세요 🙏"
+            })
+            
+      - name: Close PR if unsigned commits
+        if: env.UNSIGNED == '1'
+        uses: peter-evans/close-pull@v3
+        with:
+          comment: "🚫 GPG 서명이 없는 커밋이 포함되어 있어 이 PR은 자동으로 닫혔습니다. 모든 커밋을 `git commit -S`로 서명해주세요."
