@@ -63,4 +63,4 @@ jobs:
         uses: peter-evans/close-pull@v3
         with:
           pull-request-number: ${{ github.event.pull_request.number }}
-          comment: "🚫 GPG 서명이 없는 커밋이 포함되어 있어 이 PR은 자동으로 닫혔습니다.\n\n모든 커밋을 **git commit -S**로 서명해주세요."
+          comment: "🚫 GPG 서명이 없는 커밋이 포함되어 있어 이 PR은 자동으로 닫혔습니다.\n\n모든 커밋을 `git commit -S`로 서명해주세요."
