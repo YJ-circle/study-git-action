@@ -50,7 +50,9 @@ jobs:
         if: env.UNSIGNED == '1'
         uses: peter-evans/close-pull@v3
         with:
-          comment: "🚫 GPG 서명이 없는 커밋이 포함되어 있어 이 PR은 자동으로 닫혔습니다. 모든 커밋을 `git commit -S`로 서명해주세요."
+          comment: >-
+            🚫 GPG 서명이 없는 커밋이 포함되어 있어 이 PR은 자동으로 닫혔습니다.
+            모든 커밋을 `git commit -S`로 서명해주세요.
 permissions:
   contents: write
   issues: write
