@@ -38,10 +38,11 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
         with:
-          output: /github/workspace/results.sarif  # SARIF 파일 저장 경로 지정
+          output: /github/workspace/results.sarif
 
       - name: Comment on PR with CodeQL results
         if: github.event_name == 'pull_request'
-        uses: github/codeql-commenter-action@v1
+        uses: advanced-security/codeql-sarif-commenter@v1
         with:
-          sarif_file: /github/workspace/results.sarif
+          sarif: /github/workspace/results.sarif
+          token: ${{ secrets.GITHUB_TOKEN }}
